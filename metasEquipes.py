@@ -12,7 +12,7 @@ from streamlit.logger import get_logger
 import matplotlib.pyplot as plt
 import calendar
 
-locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
+# locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
 LOGGER = get_logger(__name__)
 
