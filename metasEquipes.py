@@ -235,7 +235,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
     grafCobGeral=(cobranca_geral.groupby(['Nome_Colaborador','REPORTE','SIT_ATUAL'],as_index=False)['Valor Liquidado'].sum()).sort_values(by='Valor Liquidado',ascending=False)
 
-    col1,col2=st.columns([5,2.4])
+    col1,col2=st.columns([5,3])
     with col1:
         with st.container(border=True):
             # Seu código para criar o gráfico
