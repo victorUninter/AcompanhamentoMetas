@@ -1,5 +1,7 @@
 import pandas as pd
+from pandas.tseries.offsets import BDay
 import datetime as dt
+from datetime import datetime
 import numpy as np
 import sqlite3
 import locale
@@ -29,8 +31,8 @@ with col2:
     # st.title('ACOMPANHAMENTO DE METAS')
     st.markdown("<h1 style='text-align: left; font-size: 80px;'>ACOMPANHAMENTO DE METAS</h1>", unsafe_allow_html=True)
 
-# ttl=120.0
-@st.cache_data(ttl=240.0)
+# ttl=240.0
+@st.cache_data()
 def buscaDadosSQL(tabela,equipe=None):
     config = {
         'host': 'roundhouse.proxy.rlwy.net',
@@ -59,6 +61,25 @@ def buscaDadosSQL(tabela,equipe=None):
         Base=Base.drop_duplicates()
         Base.to_sql(tabela, con=engine, if_exists='replace', index=False)
         return Base
+    
+def dias_uteis_no_mes(ano, mes):
+    data_inicial = pd.Timestamp(f'{ano}-{mes}-01')
+    data_final = pd.Timestamp(f'{ano}-{mes + 1}-01') - pd.DateOffset(days=1)
+    
+    datas = pd.date_range(start=data_inicial, end=data_final, freq=BDay())
+    
+    return len(datas)
+
+def dias_uteis_que_faltam():
+    hoje = pd.Timestamp(datetime.now())
+    
+    # Encontrar o último dia do mês atual
+    ultimo_dia_do_mes = hoje + pd.offsets.MonthEnd(0)
+    
+    # Calcular os dias úteis restantes
+    datas = pd.date_range(start=hoje, end=ultimo_dia_do_mes, freq=BDay())
+    
+    return len(datas)
 
 def exibeEquipe(LiquidadoEquipeMerge,colaborador,eqp,rpt):
     if colaborador == 'TODOS':
@@ -85,8 +106,6 @@ def colored_metric(content, color):
 def get_color(value):
     return "red" if value < 0 else "green"
 
-def filtroMesAno(mesNum,anoLiq):
-    pass
 #Relatório de Liquidação
 def import_base():
     BaseLiq=buscaDadosSQL('Liquidado')
@@ -98,7 +117,6 @@ def import_base():
     BaseLiq['Data Liquidacao']=pd.to_datetime(BaseLiq['Data Liquidacao'],dayfirst=True)
     BaseAliq['Data Vencimento']=pd.to_datetime(BaseAliq['Data Vencimento'],dayfirst=True)
     return BaseLiq,BaseAliq
-
 
 EquipeGeral=buscaDadosSQL('Equipe_Completa')
 
@@ -171,6 +189,8 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
     MetaTele=300000
     Metaindividual=list(metasFiltro['Meta Individual'])[0]
     MetaindividualTele=61000
+    dias_uteis=dias_uteis_no_mes(anoLiq, mesNum)
+    dias_uteis_falta=dias_uteis_que_faltam()
 
     cobgeral=cobranca_geral['Valor Liquidado'].sum()
     tele=telecobranca['Valor Liquidado'].sum()
@@ -180,7 +200,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
     faltaMeta=totalLiq-MetaLiq
     faltaMetaTele=tele-MetaTele
 
-    with st.container(border=True,height=200):
+    with st.container(border=True,height=270):
        
         col1, col2, col3, col4 = st.columns(4)
 
@@ -203,8 +223,16 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             color = get_color(faltaMetaTele)
 
             # Criar a métrica colorida
-            yellow_metric2 = colored_metric(f"Telecobrança Liquidado<br>Liquidado:R$ {tele:,.0f}<br>Falta: R$ {faltaMetaTele:,.0f}".replace(',', '.'), color)
-
+            n1 = 18
+            nnbsp_repeated1 = '&nbsp;' * n1
+            n2 = 25
+            nnbsp_repeated2 = '&nbsp;' * n2
+            yellow_metric2 = colored_metric(
+                                            f"{nnbsp_repeated1}Telecobrança Liquidado<br>"
+                                            f"Liquidado:R$ {tele: ,.0f}\n&nbsp&nbsp&nbsp"
+                                            f"<span style='font-size: 25px; color: blue;'>{tele/MetaTele: .2f}%</span><br>"
+                                            f"Falta para Meta: R$ {faltaMetaTele: ,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{(MetaTele-tele)/MetaTele: .2f}%</span>".replace(',', '.'), color)
+            
             st.markdown(yellow_metric1, unsafe_allow_html=True)
             st.markdown(yellow_metric2, unsafe_allow_html=True)
 
@@ -214,7 +242,8 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
             color = get_color(faltaMeta)
 
-            orange_metric2 = colored_metric(f"Total Liquidado<br>Liquidado:R$ {totalLiq:,.0f}<br>Falta:R$ {faltaMeta:,.0f}".replace(',', '.'), color)
+            orange_metric2 = colored_metric(f"{nnbsp_repeated2}Total Liquidado<br>Liquidado:R$ {totalLiq:,.0f}&nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{totalLiq/MetaLiq: .2f}%</span><br>"
+                                            f"Falta :R$ {faltaMeta:,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{(MetaLiq-totalLiq)/MetaLiq: .2f}%</span>".replace(',', '.'), color)
 
             st.markdown(orange_metric1, unsafe_allow_html=True)
             st.markdown(orange_metric2, unsafe_allow_html=True)
@@ -235,7 +264,9 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
     grafCobGeral=(cobranca_geral.groupby(['Nome_Colaborador','REPORTE','SIT_ATUAL'],as_index=False)['Valor Liquidado'].sum()).sort_values(by='Valor Liquidado',ascending=False)
 
-    col1,col2=st.columns([5,3])
+    st.markdown(f'<div style="padding: 10px; background-color:; border: 0px solid white; border-radius: 5px;">Dias Úteis no Mês: &nbsp&nbsp{dias_uteis}&nbsp&nbsp Faltam {dias_uteis_falta} para término do Mês</div>',unsafe_allow_html=True)
+    
+    col1,col2=st.columns([6,5])
     with col1:
         with st.container(border=True):
             # Seu código para criar o gráfico
@@ -264,7 +295,6 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             ax.set_facecolor(color="none")
             fig.patch.set_alpha(0)
             
-
             # Ajuste a largura da figura para acomodar os nomes completos
             fig.tight_layout()
 
@@ -279,7 +309,8 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
     with col2:
         # with st.container(border=True,height=750):
         cobranca_geral['Meta']=meta
-        
+        metaDiaria=round(meta/dias_uteis)
+        diasPassados=dias_uteis-dias_uteis_falta
         # agroupTab=cobranca_geral.groupby('REPORTE')[['Nome_Colaborador','Valor Liquidado']].agg({'Nome_Colaborador':'first','Valor Liquidado':'sum'})
         try:
             agroupTab = cobranca_geral.pivot_table(index=['REPORTE','Nome_Colaborador'], values='Valor Liquidado', aggfunc='sum').reset_index().sort_values(by='Valor Liquidado',ascending=False)
@@ -289,8 +320,11 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
         agroupTab['% Meta']=agroupTab['Valor Liquidado'].apply(lambda x:f"{x/meta*100:.2f}%")
 
         agroupTab['RANK']=range(1,len(agroupTab['Nome_Colaborador'])+1)
+        agroupTab['MetaDiária']=str(metaDiaria).replace(",","")
+        agroupTab['Realizado']=agroupTab['Valor Liquidado'].apply(lambda x:f"{x/diasPassados:.2f}")
+        agroupTab['Déficit/Superávit']=agroupTab['Valor Liquidado'].apply(lambda x:f"{((x/diasPassados)-metaDiaria):.2f}")
 
-        agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Valor Liquidado','% Meta']]
+        agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Valor Liquidado','% Meta','MetaDiária','Realizado','Déficit/Superávit']]
 
         st.dataframe(agroupTab,hide_index=True) 
 
