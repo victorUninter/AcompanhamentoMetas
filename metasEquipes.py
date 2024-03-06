@@ -277,22 +277,22 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             st.image(image_stream)
     
     with col2:
-        with st.container(border=True,height=750):
-            cobranca_geral['Meta']=meta
-            
-            # agroupTab=cobranca_geral.groupby('REPORTE')[['Nome_Colaborador','Valor Liquidado']].agg({'Nome_Colaborador':'first','Valor Liquidado':'sum'})
-            try:
-                agroupTab = cobranca_geral.pivot_table(index=['REPORTE','Nome_Colaborador'], values='Valor Liquidado', aggfunc='sum').reset_index().sort_values(by='Valor Liquidado',ascending=False)
-            except:
-                agroupTab=cobranca_geral[['REPORTE','Nome_Colaborador','Valor Liquidado']]
+        # with st.container(border=True,height=750):
+        cobranca_geral['Meta']=meta
+        
+        # agroupTab=cobranca_geral.groupby('REPORTE')[['Nome_Colaborador','Valor Liquidado']].agg({'Nome_Colaborador':'first','Valor Liquidado':'sum'})
+        try:
+            agroupTab = cobranca_geral.pivot_table(index=['REPORTE','Nome_Colaborador'], values='Valor Liquidado', aggfunc='sum').reset_index().sort_values(by='Valor Liquidado',ascending=False)
+        except:
+            agroupTab=cobranca_geral[['REPORTE','Nome_Colaborador','Valor Liquidado']]
 
-            agroupTab['% Meta']=agroupTab['Valor Liquidado'].apply(lambda x:f"{x/meta*100:.2f}%")
+        agroupTab['% Meta']=agroupTab['Valor Liquidado'].apply(lambda x:f"{x/meta*100:.2f}%")
 
-            agroupTab['RANK']=range(1,len(agroupTab['Nome_Colaborador'])+1)
+        agroupTab['RANK']=range(1,len(agroupTab['Nome_Colaborador'])+1)
 
-            agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Valor Liquidado','% Meta']]
+        agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Valor Liquidado','% Meta']]
 
-            st.dataframe(agroupTab,hide_index=True) 
+        st.dataframe(agroupTab,hide_index=True) 
 
 if __name__ == "__main__":
     run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colaborador)
