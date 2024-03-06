@@ -221,7 +221,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
         with col4:
             # Usa a função para criar um container vermelho
-            red_metric = colored_metric(f"Total a Liquidar<br>R$ {aLiquidar:,.0f}".replace(',', '.'), "#363636")
+            red_metric = colored_metric(f"Total a Liquidar (ENTRADA)<br>R$ {aLiquidar:,.0f}".replace(',', '.'), "#363636")
             st.markdown(red_metric, unsafe_allow_html=True)
 
     DfEqpFiltro,qtdeColabs = exibeEquipe(LiquidadoEquipeMerge,colaborador, optionsEqp, optionsRpt)
