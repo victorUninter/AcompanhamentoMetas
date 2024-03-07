@@ -13,6 +13,7 @@ import os
 from streamlit.logger import get_logger
 import matplotlib.pyplot as plt
 import calendar
+import requests
 
 # locale.setlocale(locale.LC_TIME, 'pt_BR.UTF-8')
 
@@ -34,11 +35,12 @@ with col2:
 # ttl=240.0
 @st.cache_data(ttl=240.0)
 def buscaDadosSQL(tabela,equipe=None):
+
     config = {
         'host': 'roundhouse.proxy.rlwy.net',
-        'user': 'root',
+        'user': os.getenv('MYSQLUSER'),
         'port':'26496',
-        'password': '2b632BA2FhGFeFb4BHdcdC3G6B6-6-3d',
+        'password': os.getenv('MYSQLPASSWORD'),
         'database': 'railway'
     }
 
@@ -131,7 +133,9 @@ Reporte.insert(0,'TODOS')
 with st.container(border=True):
         col1, col2, col3,col4 = st.columns([1,2,2,2])
         with col1:
+            
             meses={i:j for j,i in enumerate(calendar.month_abbr)}
+
             mesLiq = st.selectbox(
             'Mês',list(meses.keys())[1:])
             mesNum=meses[f"{mesLiq}"]
@@ -192,6 +196,31 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
     dias_uteis=dias_uteis_no_mes(anoLiq, mesNum)
     dias_uteis_falta=dias_uteis_que_faltam()
 
+    token=os.getenv('token')
+    r = requests.get(f'https://api.invertexto.com/v1/holidays/{anoLiq}?token={token}&state=PR',verify=False)
+    feriados=r.json()
+
+    feriadoNacionais=[data['date'] for data in feriados]
+
+    feriadosDF=pd.DataFrame(feriadoNacionais,columns=["Data"])
+    feriadosDF["Data"]=pd.to_datetime(feriadosDF["Data"])
+    feriadosDF["DiaSemana"]=feriadosDF["Data"].dt.strftime("%A")
+    feriadosDF["Mês"]=feriadosDF["Data"].dt.month
+    domingo="Sunday"
+    sabado="Saturday"
+    feriadosDUtil=feriadosDF.loc[(feriadosDF['DiaSemana']!=domingo) & (feriadosDF['DiaSemana']!=sabado)]
+
+    qtdeFeriados=feriadosDF.groupby('Mês',as_index=False)['Data'].count()
+    qtdeFeriadosMes=qtdeFeriados[qtdeFeriados['Mês']==mesNum]
+    try:
+        nFer=list(qtdeFeriadosMes['Data'])[0]
+        dias_uteis=dias_uteis-nFer
+        dias_uteis_falta=dias_uteis_falta-nFer
+    except:
+        nFer=0
+        dias_uteis=dias_uteis-nFer
+        dias_uteis_falta=dias_uteis_falta-nFer
+
     cobgeral=cobranca_geral['Valor Liquidado'].sum()
     tele=telecobranca['Valor Liquidado'].sum()
     acOn=acordoOnline['Valor Liquidado'].sum()
@@ -230,8 +259,8 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             yellow_metric2 = colored_metric(
                                             f"{nnbsp_repeated1}Telecobrança Liquidado<br>"
                                             f"Liquidado:&nbspR$ {tele: ,.0f}\n&nbsp&nbsp&nbsp"
-                                            f"<span style='font-size: 25px; color: blue;'>{(tele/MetaTele)*100: .2f}%</span><br>"
-                                            f"Falta para Meta:&nbspR$ {faltaMetaTele: ,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{((tele-MetaTele)/MetaTele)*100: .2f}%</span>".replace(',', '.'), color)
+                                            f"<span style='font-size: 25px; color: blue;'>{(tele/MetaTele)*100: .0f}%</span><br>"
+                                            f"Falta para Meta:&nbspR$ {faltaMetaTele: ,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{((tele-MetaTele)/MetaTele)*100: .0f}%</span>".replace(',', '.'), color)
             
             st.markdown(yellow_metric1, unsafe_allow_html=True)
             st.markdown(yellow_metric2, unsafe_allow_html=True)
@@ -242,8 +271,8 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
             color = get_color(faltaMeta)
 
-            orange_metric2 = colored_metric(f"{nnbsp_repeated2}Total Liquidado<br>Liquidado:&nbspR$ {totalLiq:,.0f}&nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .2f}%</span><br>"
-                                            f"Falta para Meta:&nbspR$ {faltaMeta:,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{((totalLiq-MetaLiq)/MetaLiq)*100: .2f}%</span>".replace(',', '.'), color)
+            orange_metric2 = colored_metric(f"{nnbsp_repeated2}Total Liquidado<br>Liquidado:&nbspR$ {totalLiq:,.0f}&nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>"
+                                            f"Falta para Meta:&nbspR$ {faltaMeta:,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{((totalLiq-MetaLiq)/MetaLiq)*100: .0f}%</span>".replace(',', '.'), color)
 
             st.markdown(orange_metric1, unsafe_allow_html=True)
             st.markdown(orange_metric2, unsafe_allow_html=True)
