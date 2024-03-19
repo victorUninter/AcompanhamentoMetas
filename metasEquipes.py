@@ -106,10 +106,10 @@ def exibeEquipe(LiquidadoEquipeMerge,colaborador,eqp,rpt):
 
 # Define uma função para criar um container personalizado com cor de fundo
 def colored_metric(content, color):
-    return f'<div style="padding: 10px; background-color: {color}; border: 2px solid white; border-radius: 5px;">{content}</div>'
+    return f'<div style="display: flex;padding: 10px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;">{content}</div>'
 
 def get_color(value):
-    return "red" if value < 0 else "green"
+    return "255 0 0" if value < 0 else "50 205 50"
 
 #Relatório de Liquidação
 def import_base():
@@ -133,35 +133,38 @@ Equipe.insert(0,'TODOS')
 Reporte=list(EquipeMetas['REPORTE'].unique())
 Reporte.insert(0,'TODOS')
 
+
+col1, col2,col3,col4,col5,col6,col7,col8, = st.columns([3,3,5,5,5,5,5,5])
+
+with col1:
+    meses={i:j for j,i in enumerate(calendar.month_abbr)}
+
+    mesLiq = st.selectbox(
+    'Mês',list(meses.keys())[1:])
+    mesNum=meses[f"{mesLiq}"]
+with col2:
+    anoInicio=2024
+    anoFim=anoInicio+20
+
+    anoLiq = st.selectbox(
+    'Ano',range(anoInicio,anoFim))
+
 with st.container(border=True):
-        col1, col2, col3,col4 = st.columns([1,2,2,2])
-        with col1:
-            
-            meses={i:j for j,i in enumerate(calendar.month_abbr)}
+    col1, col2, col3 = st.columns([5,5,5])
 
-            mesLiq = st.selectbox(
-            'Mês',list(meses.keys())[1:])
-            mesNum=meses[f"{mesLiq}"]
+    with col1:
+        optionsEqp = st.selectbox(
+        'Filtro por Equipe',
+        Equipe)
+    with col2:
+        optionsRpt = st.selectbox(
+        'Filtro por Responsável',
+        Reporte)
 
-            anoInicio=2024
-            anoFim=anoInicio+20
-
-            anoLiq = st.selectbox(
-            'Ano',range(anoInicio,anoFim))
-
-        with col2:
-            optionsEqp = st.selectbox(
-            'Selecione a Equipe',
-            Equipe)
-        with col3:
-            optionsRpt = st.selectbox(
-            'Selecione o Responsável',
-            Reporte)
-
-        with col4:
-            colaborador = st.selectbox(
-            'Selecione o Colaborador',
-            colaborador)
+    with col3:
+        colaborador = st.selectbox(
+        'Filtro por Colaborador',
+        colaborador)
 
 BaseLiq,BaseAliq=import_base()
 
@@ -239,43 +242,62 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
     with st.container(border=True,height=270):
        
-        col1, col2, col3, col4 = st.columns([3,5,6,3])
+        col1, col2, col3 = st.columns([2,3,4])
 
         with col1:
+            corPad="105 105 105"
             # Usa a função para criar um container verde
-            green_metric = colored_metric(f"Cobrança Geral<br>R$ {cobgeral:,.0f}".replace(',', '.'), "#363636")
+            green_metric = f"""<div style='display: inline-block;padding: 5px;width: 300px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            white-space: nowrap;text-align: center;font-size: 20px'>Cobrança Geral<br>R$ {cobgeral:,.0f}</div>""".replace(',', '.')
             st.markdown(green_metric, unsafe_allow_html=True)
             # Usa a função para criar um container azul
-            blue_metric = colored_metric(f"Acordo Online<br>R$ {acOn:,.0f}".replace(',', '.'), "#363636")
+            blue_metric = f"""<div style='display: inline-block;padding: 5px;width: 300px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            white-space: nowrap;text-align: center;font-size: 20px'>Acordo Online<br>R$ {acOn:,.0f}</div>""".replace(',', '.')
             st.markdown(blue_metric, unsafe_allow_html=True)
+
+            blue_metric = f"""<div style='display: inline-block;padding: 5px;width: 300px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            white-space: nowrap;text-align: center;font-size: 20px'>Dias de Trabalho<br>Dias Úteis: {dias_uteis}&nbsp - Faltam &nbsp{dias_uteis_falta} dias</div>"""
+            st.markdown(blue_metric, unsafe_allow_html=True)
+
         # with col1:
         #     # Usa a função para criar um container azul
         #     blue_metric = colored_metric(f"Acordo Online<br>R$ {acOn:,.0f}".replace(',', '.'), "#363636")
         #     st.markdown(blue_metric, unsafe_allow_html=True)
 
         with col2:
+
+            valorDefSupTel=tele-(MetaTele/dias_uteis)*(dias_uteis-dias_uteis_falta)
+            defsupTel=f"{valorDefSupTel:,.2f}".replace(",",";").replace(".",",").replace(";",".")
+            alteraCor='0 0 255' if valorDefSupTel>0 else '255 0 0' 
             # Usa a função para criar um container amarelo
-            yellow_metric1 = colored_metric(f"Meta Telecobrança<br>R$ {MetaTele:,.0f}".replace(',', '.'), "#363636")
+            # Criar a métrica colorida
+            n1 = 12
+            nnbsp_repeated1 = '&nbsp;' * n1
+            n2 = 30
+            nnbsp_repeated2 = '&nbsp;' * n2
+
+            yellow_metric1 = f"""<div style='display: inline-block;padding: 5px;width: 375px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            white-space: nowrap;text-align: center;font-size: 20px'>Meta Telecobrança<br>R$ {MetaTele:,.0f}</div>
+            <div style='display: inline-block;padding: 5px;width: 375px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;white-space: nowrap;text-align: center;font-size: 20px'>Meta Diária Telecobrança<br>R$ {MetaTele/dias_uteis:,.0f}</div>""".replace(',', '.')
             # Se o valor for negativo, a cor será vermelha, caso contrário, será verde
             color = get_color(faltaMetaTele)
 
-            # Criar a métrica colorida
-            n1 = 25
-            nnbsp_repeated1 = '&nbsp;' * n1
-            n2 = 25
-            nnbsp_repeated2 = '&nbsp;' * n2
-            yellow_metric2 = colored_metric(
-                                            
-                                            f"Liquidado:&nbspR$ {tele: ,.0f}\n&nbsp&nbsp&nbsp"
-                                            f"<span style='font-size: 25px; color: blue;'>{(tele/MetaTele)*100: .0f}%</span><br>"
-                                            f"Falta para Meta:&nbspR$ {faltaMetaTele: ,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{((tele-MetaTele)/MetaTele)*100: .0f}%</span>".replace(',', '.'), color)
+            yellow_metric2 =f"""<div style="display: flex;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 750px">
+                                <div style='display: inline-block;font-size: 17px'> Liquidado: R$ {tele: ,.0f}
+                                <span style='font-size: 25px; color: blue;'>{(tele/MetaTele)*100: .0f}%</span><br>
+                                Falta para Meta:R$ {faltaMetaTele: ,.0f} <span style='font-size: 25px; color: blue;'>{((tele-MetaTele)/MetaTele)*100: .0f}%</span>
+                                </div>{nnbsp_repeated2}<div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
+                                Déficit/Superávit <br>R${defsupTel}
+                                </div>
+                                <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 18px;">
+                                Meta Diária Atual <br>R${(faltaMetaTele/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
             
             st.markdown(yellow_metric1, unsafe_allow_html=True)
             st.markdown(yellow_metric2, unsafe_allow_html=True)
 
         with col3:
-            n5 = 22
-            n6 = 22
+            n5 = 12
+            n6 = 35
             nnbsp_repeated5 = '&nbsp;' * n5
             nnbsp_repeated6 = '&nbsp;' * n6
             # Usa a função para criar um container laranja
@@ -283,30 +305,30 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             metaDia=f"{MetaLiq/dias_uteis:,.0f}".replace(',', '.')
             valorDefSup=totalLiq-(MetaLiq/dias_uteis)*(dias_uteis-dias_uteis_falta)
             defsup=f"{valorDefSup:,.2f}".replace(",",";").replace(".",",").replace(";",".")
-            alteraCor='blue' if valorDefSup>0 else 'red'
+            alteraCor='0 0 255' if valorDefSup>0 else '255 0 0' 
 
-            orange_metric1 = colored_metric(f"<div style='display: inline-block;padding: 5px;width: 240px; border: 2px solid white; border-radius: 5px;white-space: nowrap;text-align: center;font-size: 20px'>Meta Cobrança<br> R${metaCob}</div>{nnbsp_repeated5}<div style='display: inline-block;padding: 5px;width: 240px; border: 2px solid white; border-radius: 5px;white-space: nowrap;font-size: 20px;text-align: center;'>Meta Diária<br> R${metaDia}</div>".replace(',', '.'), "#363636")
+
+            orange_metric1 = f"""<div style='display: inline-block;padding: 5px;width: 375px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            white-space: nowrap;text-align: center;font-size: 20px'>Meta Cobrança<br> R${metaCob}</div>
+                                            <div style='display: inline-block;padding: 5px;width: 375px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            white-space: nowrap;text-align: center;font-size: 20px'>Meta Diária<br> R${metaDia}</div>""".replace(',', '.')
 
             color = get_color(faltaMeta)
 
-            orange_metric2 = colored_metric(f"<div style='display: inline-block;'>Liquidado:&nbspR$ {totalLiq:,.0f}<span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>"
-                                            f"Falta:&nbspR$ {faltaMeta:,.0f} &nbsp&nbsp&nbsp<span style='font-size: 25px; color: blue;'>{((totalLiq-MetaLiq)/MetaLiq)*100: .0f}%</span></div>{nnbsp_repeated6}<div style='display: inline-block;padding: 10px;justify-content: center;align-items: center;width: 190px; border: 2px solid white; border-radius: 5px;white-space: nowrap;background-color:{alteraCor};font-size: 20px'>Déficit/Superávit <br>R${defsup}</div>".replace(',', '.'), color)
+            orange_metric2 = f"""<div style="display: flex;padding: 10px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 752px"><div style='display: inline-block;font-size: 15px'>Liquidado: R$ {totalLiq:,.0f}
+                                            <span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>
+                                            Falta: R$ {faltaMeta:,.0f} 
+                                            <span style='font-size: 25px; color: blue;'>{((totalLiq-MetaLiq)/MetaLiq)*100: .0f}% </span><br>
+                                            A Liquidar (ENTRADA): R$ {aLiquidar:,.0f}</div>
+                                            {nnbsp_repeated6}
+                                            <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
+                                            Déficit/Superávit <br>R${defsup}
+                                            </div><div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
+                                            Meta Diária Atual <br>R${(faltaMeta/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
 
             st.markdown(orange_metric1, unsafe_allow_html=True)
             st.markdown(orange_metric2, unsafe_allow_html=True)
 
-        with col4:
-            # Usa a função para criar um container vermelho
-            n3 = 35
-            n4 = 30
-            nnbsp_repeated3 = '&nbsp;' * n3
-            nnbsp_repeated4 = '&nbsp;' * n4
-            
-            red_metric = colored_metric(f"Total a Liquidar (ENTRADA)<br>R$ {aLiquidar:,.0f}".replace(',', '.'), "#363636")
-            st.markdown(red_metric, unsafe_allow_html=True)
-            red_metric = colored_metric(f"Dias Úteis: {dias_uteis}{nnbsp_repeated3}<br> Falta &nbsp{dias_uteis_falta} dias {nnbsp_repeated4}", "#363636")
-
-            st.markdown(red_metric, unsafe_allow_html=True)
 
     DfEqpFiltro,qtdeColabs = exibeEquipe(LiquidadoEquipeMerge,colaborador, optionsEqp, optionsRpt)
 
@@ -319,8 +341,8 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
     grafCobGeral=(cobranca_geral.groupby(['Nome_Colaborador','REPORTE','SIT_ATUAL'],as_index=False)['Valor Liquidado'].sum()).sort_values(by='Valor Liquidado',ascending=False)
 
-    col1,col2=st.columns([5,6])
-    with col1:
+    col4,col5=st.columns([5,5])
+    with col4:
         with st.container(border=True):
             # Seu código para criar o gráfico
             fig, ax = plt.subplots(figsize=(25  , 27))  # Ajuste os valores conforme necessário
@@ -359,7 +381,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             # Exibir a imagem sem use_container_width
             st.image(image_stream)
     
-    with col2:
+    with col5:
         # with st.container(border=True,height=750):
         cobranca_geral['Meta']=meta
         metaDiaria=round(meta/dias_uteis)
@@ -383,7 +405,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
         agroupTab['Déficit/Superávit Total']=agroupTab['Déficit/Superávit Diário'].apply(lambda x: f"R${float(x.replace('R$','').replace('.','').replace(',','.'))*diasPassados:,.2f}".replace(",",";").replace(".",",").replace(";","."))
         agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Realizado Total','% Atingido Meta','Meta Diária','Realizado por Dia (Média)','Déficit/Superávit Diário','Déficit/Superávit Total']]
 
-        st.dataframe(agroupTab,hide_index=True,height=770,width=900) 
+        st.dataframe(agroupTab,hide_index=True,height=1200,width=1200) 
 
 if __name__ == "__main__":
     run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colaborador)
