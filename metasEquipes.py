@@ -115,9 +115,11 @@ def get_color(value):
 def import_base():
     BaseLiq=buscaDadosSQL('Liquidado')
     BaseAliq=buscaDadosSQL('Areceber')
-
-    BaseLiq['Valor Liquidado']=BaseLiq['Valor Liquidado'].str.replace(",",".").astype(float)
-    BaseAliq['Valor Original']=BaseAliq['Valor Original'].str.replace(",",".").astype(float)
+    try:
+        BaseLiq['Valor Liquidado']=BaseLiq['Valor Liquidado'].str.replace(",",".").astype(float)
+        BaseAliq['Valor Original']=BaseAliq['Valor Original'].str.replace(",",".").astype(float)
+    except:
+        pass
 
     BaseLiq['Data Liquidacao']=pd.to_datetime(BaseLiq['Data Liquidacao'],dayfirst=True)
     BaseAliq['Data Vencimento']=pd.to_datetime(BaseAliq['Data Vencimento'],dayfirst=True)
@@ -282,7 +284,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             # Se o valor for negativo, a cor será vermelha, caso contrário, será verde
             color = get_color(faltaMetaTele)
 
-            yellow_metric2 =f"""<div style="display: flex;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 750px">
+            yellow_metric2 =f"""<div style="display: inline-block;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 750px">
                                 <div style='display: inline-block;font-size: 17px'> Liquidado: R$ {tele: ,.0f}
                                 <span style='font-size: 25px; color: blue;'>{(tele/MetaTele)*100: .0f}%</span><br>
                                 Falta para Meta:R$ {faltaMetaTele: ,.0f} <span style='font-size: 25px; color: blue;'>{((tele-MetaTele)/MetaTele)*100: .0f}%</span>
@@ -308,24 +310,30 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             alteraCor='0 0 255' if valorDefSup>0 else '255 0 0' 
 
 
-            orange_metric1 = f"""<div style='display: inline-block;padding: 5px;width: 375px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+            orange_metric1 = f"""<div style='display: inline-block;padding: 5px;width: 395px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
             white-space: nowrap;text-align: center;font-size: 20px'>Meta Cobrança<br> R${metaCob}</div>
-                                            <div style='display: inline-block;padding: 5px;width: 375px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+                                            <div style='display: inline-block;padding: 5px;width: 395px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
             white-space: nowrap;text-align: center;font-size: 20px'>Meta Diária<br> R${metaDia}</div>""".replace(',', '.')
 
             color = get_color(faltaMeta)
 
-            orange_metric2 = f"""<div style="display: flex;padding: 10px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 752px"><div style='display: inline-block;font-size: 15px'>Liquidado: R$ {totalLiq:,.0f}
-                                            <span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>
-                                            Falta: R$ {faltaMeta:,.0f} 
-                                            <span style='font-size: 25px; color: blue;'>{((totalLiq-MetaLiq)/MetaLiq)*100: .0f}% </span><br>
-                                            A Liquidar (ENTRADA): R$ {aLiquidar:,.0f}</div>
-                                            {nnbsp_repeated6}
-                                            <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
-                                            Déficit/Superávit <br>R${defsup}
-                                            </div><div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
-                                            Meta Diária Atual <br>R${(faltaMeta/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
+            percentual_completado = (totalLiq / MetaLiq) * 100
+            percentual_falta = ((totalLiq - MetaLiq) / MetaLiq) * 100
 
+            # Formate os resultados para inseri-los no f-string
+            percentual_completado_formatado = f"{percentual_completado:.0f}%"
+            percentual_falta_formatado = f"{percentual_falta:.0f}%"
+            # color = float(color)
+
+            orange_metric2 =f"""<div style="display: inline-block;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 800px">
+                                            <div style='display: inline-block;font-size: 17px'> Liquidado: R$ {totalLiq: ,.0f}
+                                            <span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>
+                                            Falta para Meta:R$ {faltaMeta: ,.0f} <span style='font-size: 25px; color: blue;'>{((totalLiq - MetaLiq) / MetaLiq) * 100: .0f}%</span>
+                                            </div>{nnbsp_repeated2}<div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
+                                            Déficit/Superávit <br>R${defsup}
+                                            </div>
+                                            <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 18px;">
+                                            Meta Diária Atual <br>R${((faltaMeta/dias_uteis_falta)*-1):,.0f}</div></div>""".replace(',', '.')
             st.markdown(orange_metric1, unsafe_allow_html=True)
             st.markdown(orange_metric2, unsafe_allow_html=True)
 
