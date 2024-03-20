@@ -225,6 +225,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
     qtdeFeriados=feriadosDF.groupby('Mês',as_index=False)['Data'].count()
     qtdeFeriadosMes=qtdeFeriados[qtdeFeriados['Mês']==mesNum]
+
     try:
         nFer=list(qtdeFeriadosMes['Data'])[0]
         dias_uteis=dias_uteis-nFer
@@ -234,11 +235,13 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
         dias_uteis=dias_uteis-nFer
         dias_uteis_falta=dias_uteis_falta-nFer
 
+    diaHj=dt.datetime.now().day
     cobgeral=cobranca_geral['Valor Liquidado'].sum()
     tele=telecobranca['Valor Liquidado'].sum()
     acOn=acordoOnline['Valor Liquidado'].sum()
     totalLiq=BaseLiqmes['Valor Liquidado'].sum()
-    aLiquidar=BaseAliqMetas['Valor Original'].sum()
+    liqDia=BaseLiqmes.loc[(BaseLiqmes['Data Liquidacao'].dt.day==diaHj),'Valor Liquidado'].sum()
+    aLiquidar=BaseAliqMetas['Valor Original'].str.replace(",",".").astype(float).sum()
     faltaMeta=totalLiq-MetaLiq
     faltaMetaTele=tele-MetaTele
 
@@ -258,7 +261,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             st.markdown(blue_metric, unsafe_allow_html=True)
 
             blue_metric = f"""<div style='display: inline-block;padding: 5px;width: 300px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
-            white-space: nowrap;text-align: center;font-size: 20px'>Dias de Trabalho<br>Dias Úteis: {dias_uteis}&nbsp - Faltam &nbsp{dias_uteis_falta} dias</div>"""
+            white-space: nowrap;text-align: center;font-size: 20px'>Dias de Trabalho<br>{dias_uteis} Dias Úteis &nbsp - Faltam &nbsp{dias_uteis_falta} dias</div>"""
             st.markdown(blue_metric, unsafe_allow_html=True)
 
         # with col1:
@@ -292,7 +295,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
                                 Déficit/Superávit <br>R${defsupTel}
                                 </div>
                                 <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 18px;">
-                                Meta Diária Atual <br>R${(faltaMetaTele/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
+                                Meta Diária Atual <br>Meta R${(faltaMetaTele/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
             
             st.markdown(yellow_metric1, unsafe_allow_html=True)
             st.markdown(yellow_metric2, unsafe_allow_html=True)
@@ -328,12 +331,13 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             orange_metric2 =f"""<div style="display: inline-block;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 800px">
                                             <div style='display: inline-block;font-size: 17px'> Liquidado: R$ {totalLiq: ,.0f}
                                             <span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>
-                                            Falta para Meta:R$ {faltaMeta: ,.0f} <span style='font-size: 25px; color: blue;'>{((totalLiq - MetaLiq) / MetaLiq) * 100: .0f}%</span>
+                                            Falta para Meta:R$ {faltaMeta: ,.0f} <span style='font-size: 25px; color: blue;'>{((totalLiq - MetaLiq) / MetaLiq) * 100: .0f}%</span><br>
+                                            A Liquidar (entradas):R$ {aLiquidar: ,.0f}
                                             </div>{nnbsp_repeated2}<div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
                                             Déficit/Superávit <br>R${defsup}
                                             </div>
                                             <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 18px;">
-                                            Meta Diária Atual <br>R${((faltaMeta/dias_uteis_falta)*-1):,.0f}</div></div>""".replace(',', '.')
+                                            Meta Diária Atual <br>Meta Dia R${((faltaMeta/dias_uteis_falta)*-1):,.0f}<br>Feito R${liqDia:,.0f}</div></div>""".replace(',', '.')
             st.markdown(orange_metric1, unsafe_allow_html=True)
             st.markdown(orange_metric2, unsafe_allow_html=True)
 
@@ -362,7 +366,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
             for bar, val in zip(bars, performance):
                 ax.text(bar.get_x() + bar.get_width(), bar.get_y() + bar.get_height() / 2, 
-                        f'{val:,.0f}'.replace(',', '.'), color='white', fontweight='bold', fontsize=20, va='center')
+                        f'{(val/meta)*100:,.2f}%'.replace(',', '.'), color='white', fontweight='bold', fontsize=20, va='center')
 
             ax.vlines(x=meta, ymin=-1.5, ymax=len(colabs), color='red', linestyle='--', label='Meta')
             ax.text(meta, -1.5, f'Meta: {meta:,.0f}'.replace(',', '.'), color='red', fontsize=30, ha='right')
