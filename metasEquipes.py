@@ -295,25 +295,26 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             nnbsp_repeated1 = '&nbsp;' * n1
             n2 = 10
             nnbsp_repeated2 = '&nbsp;' * n2
-
-            yellow_metric1 = f"""<div style='display: inline-block;padding: 5px;width: 340px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
-            white-space: nowrap;text-align: center;font-size: 20px'>Meta Telecobrança<br>R$ {MetaTele:,.0f}</div>
-            <div style='display: inline-block;padding: 5px;width: 340px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;white-space: nowrap;text-align: center;font-size: 20px'>Meta Diária Telecobrança<br>R$ {MetaTele/dias_uteis:,.0f}</div>""".replace(',', '.')
             # Se o valor for negativo, a cor será vermelha, caso contrário, será verde
             color = get_color(faltaMetaTele)
 
-            yellow_metric2 =f"""<div style="display: inline-block;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 680px">
-                                <div style='display: inline-block;font-size: 17px'> Liquidado: R$ {tele: ,.0f}
-                                <span style='font-size: 25px; color: blue;'>{(tele/MetaTele)*100: .0f}%</span><br>
+            yellow_metric1 = f"""<div style='display: flex'>
+                                <div style='display: flex;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+                                white-space: nowrap;justify-content: center;font-size: 20px'>Meta Telecobrança<br>R$ {MetaTele:,.0f}</div>
+                                <div style='display: flex;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;white-space: nowrap;justify-content: center;font-size: 20px'>Meta Diária Telecobrança<br>R$ {MetaTele/dias_uteis:,.0f}</div>
+                                </div>
+                                <div style="display: flex;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white;justify-content: center; border-radius: 5px;width: 700px">
+                                <div style='display: inline-block;font-size: 17px;text-align: center'> Liquidado: R$ {tele: ,.0f}
+                                <span style='font-size: 20px; color: blue;'>{(tele/MetaTele)*100: .0f}%</span><br>
                                 Falta para Meta:R$ {faltaMetaTele: ,.0f} <span style='font-size: 25px; color: blue;'>{((tele-MetaTele)/MetaTele)*100: .0f}%</span>
-                                </div>{nnbsp_repeated2}<div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
+                                </div>{nnbsp_repeated2}
+                                <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
                                 Déficit/Superávit <br>R${defsupTel}
                                 </div>
                                 <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 18px;">
                                 Meta Diária Atual <br>Meta R${(faltaMetaTele/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
             
             st.markdown(yellow_metric1, unsafe_allow_html=True)
-            st.markdown(yellow_metric2, unsafe_allow_html=True)
 
         with col3:
             #BLOCO MÉTRICAS METAS COBRANÇA GERAL
@@ -328,12 +329,6 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             defsup=f"{valorDefSup:,.2f}".replace(",",";").replace(".",",").replace(";",".")
             alteraCor='0 0 255' if valorDefSup>0 else '255 0 0' 
 
-
-            orange_metric1 = f"""<div style='display: inline-block;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
-            white-space: nowrap;text-align: center;font-size: 20px'>Meta Cobrança<br> R${metaCob}</div>
-                                            <div style='display: inline-block;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
-            white-space: nowrap;text-align: center;font-size: 20px'>Meta Diária<br> R${metaDia}</div>""".replace(',', '.')
-
             color = get_color(faltaMeta)
 
             percentual_completado = (totalLiq / MetaLiq) * 100
@@ -344,19 +339,25 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             percentual_falta_formatado = f"{percentual_falta:.0f}%"
             # color = float(color)
 
-            orange_metric2=f"""<div style="display: inline-block;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white; border-radius: 5px;width: 700px">
+            orange_metric1 = f"""<div style='display: justify-content: center'>
+                                <div style='display: flex;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+                                white-space: nowrap;justify-content: center;font-size: 20px'>Meta Cobrança<br> R${metaCob}</div>
+                                <div style='display: flex;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
+                                white-space: nowrap;justify-content: center;font-size: 20px'>Meta Diária<br> R${metaDia}</div>
+                                </div>
+                                <div style="display: flex;padding: 15px; background-color: rgb({color}/0.4); border: 2px solid white;justify-content: center; border-radius: 5px;width: 700px">
                                 <div style='display: inline-block;font-size: 17px'> Liquidado: R$ {totalLiq: ,.0f}
                                 <span style='font-size: 25px; color: blue;'>{(totalLiq/MetaLiq)*100: .0f}%</span><br>
-                                Falta para Meta:R$ {faltaMeta: ,.0f} <span style='font-size: 25px; color: blue;'>{((MetaLiq-totalLiq) / MetaLiq)*100: .0f}%</span><br>
-                                A Liquidar (entradas):R$ {aLiquidar: ,.0f}
-                                </div>{nnbsp_repeated2}<div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
-                                Déficit/Superávit <br>R${defsup}
-                                </div>
+                                Falta para Meta:R$ {faltaMeta: ,.0f} <span style='font-size: 25px; color: blue;'>{((MetaLiq-totalLiq) / MetaLiq)*100: .0f}%
+                                </span><br>A Liquidar (entradas):R$ {aLiquidar: ,.0f}</div>
+                                {nnbsp_repeated2}<div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 20px;">
+                                Déficit/Superávit <br>R${defsup}</div>
                                 <div style="display: inline-block; padding: 10px; text-align: center; width: 180px; border: 2px solid white; border-radius: 10px; white-space: nowrap; background-color: rgb({alteraCor} / 0.5  ); font-size: 18px;">
                                 Meta Diária Atual <br>Meta R${(faltaMeta/dias_uteis_falta)*-1:,.0f}</div></div>""".replace(',', '.')
 
+
             st.markdown(orange_metric1, unsafe_allow_html=True)
-            st.markdown(orange_metric2, unsafe_allow_html=True)
+            # st.markdown(orange_metric2, unsafe_allow_html=True)
 
         with col4:
             try:
@@ -418,7 +419,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
 
     grafCobGeral=(cobranca_geral.groupby(['Nome_Colaborador','REPORTE','SIT_ATUAL'],as_index=False)['Valor Liquidado'].sum()).sort_values(by='Valor Liquidado',ascending=False)
 
-    col4,col5=st.columns([5,5])
+    col4,col5=st.columns([5,6])
     with col4:
         with st.container(border=True):
             # Seu código para criar o gráfico
@@ -481,18 +482,47 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
         agroupTab['Déficit/Superávit Diário']=agroupTab['Valor Liquidado'].apply(lambda x:f"R${((x/diasPassados)-metaDiaria):,.2f}".replace(",",";").replace(".",",").replace(";","."))
         agroupTab['Realizado Total']=agroupTab['Valor Liquidado'].apply(lambda x: f"R${x:,.2f}".replace(",",";").replace(".",",").replace(";","."))
         agroupTab['Déficit/Superávit Total']=agroupTab['Déficit/Superávit Diário'].apply(lambda x: f"R${float(x.replace('R$','').replace('.','').replace(',','.'))*diasPassados:,.2f}".replace(",",";").replace(".",",").replace(";","."))
-        agroupTab['A Receber']=agroupTab['A Receber'].apply(lambda x: f"R${x:,.2f}".replace(",",";").replace(".",",").replace(";","."))
-        agroupTab['PREVISÃO_META']=agroupTab['Realizado Total']+agroupTab['A Receber']
-        # def resultado_metas(x,agroupTab):
-        #     if x>=meta:
-        #         return "META_BATIDA"
-        #     elif x+agroupTab['A Receber']>=meta:
-        #         return "PODE_BATER_META"
+        agroupTab['Receber']=agroupTab['A Receber'].apply(lambda x: f"R${x:,.2f}".replace(",",";").replace(".",",").replace(";","."))
+        # agroupTab['PREVISÃO_META']=agroupTab['Realizado Total']+agroupTab['A Receber']
+        # Função para verificar se a meta foi batida
+        def verificar_meta(row):
+            if row['Valor Liquidado'] >= meta:
+                return 'Meta Batida'
+            elif (row['Valor Liquidado']+ row['A Receber']) >= meta:
+                return 'Pode Bater Meta'
+            elif (row['Valor Liquidado']+ row['A Receber']+(dias_uteis_falta*metaDiaria)) >= meta:
+                return 'Chance de bater a meta'
+            else:
+                return 'Não irá bater Meta'
+            
+        agroupTab['Resultado']=agroupTab.apply(verificar_meta, axis=1)
 
-        agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Realizado Total','% Atingido Meta','Meta Diária','Realizado por Dia (Média)','Déficit/Superávit Diário','Déficit/Superávit Total','A Receber']]
+
+        agroupTab=agroupTab[['RANK','REPORTE','Nome_Colaborador','Realizado Total','% Atingido Meta','Meta Diária','Realizado por Dia (Média)','Déficit/Superávit Diário','Déficit/Superávit Total','Receber','Resultado']]
         
-        st.dataframe(agroupTab,hide_index=True,height=1200,width=1200) 
+        # Função para definir a cor do texto com base no conteúdo da coluna 'Resultado'
+        def color_text(value):
+            if value == 'Meta Batida':
+                color = 'blue'
+            elif value == 'Pode Bater Meta':
+                color = 'lightblue'
+            elif value == 'Chance de bater a meta':
+                color = 'orange'
+            elif value == 'Não irá bater Meta':
+                color = 'red'
+            else:
+                color = 'black'  # Cor padrão para outros valores
+            return f'color: {color};'
 
+        # Aplicando a formatação condicional à coluna 'Resultado'
+        styled_df = agroupTab.style.applymap(lambda x: color_text(x), subset=['Resultado'])
+
+        # Exibindo o DataFrame com a formatação
+        # st.write(styled_df)
+        
+        # st.dataframe(agroupTab.style.applymap(color_text, subset=['Resultado']), unsafe_allow_html=True,hide_index=True,height=1500,width=1600)
+
+        st.dataframe(styled_df,hide_index=True,height=1400,width=1500) 
 
 if __name__ == "__main__":
     run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colaborador)
