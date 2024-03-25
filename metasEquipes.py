@@ -339,7 +339,7 @@ def run(cobranca_geral,telecobranca,acordoOnline,BaseLiqmes,BaseAliqMetas,colabo
             percentual_falta_formatado = f"{percentual_falta:.0f}%"
             # color = float(color)
 
-            orange_metric1 = f"""<div style='display: justify-content: center'>
+            orange_metric1 = f"""<div style='display:flex; justify-content: center'>
                                 <div style='display: flex;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
                                 white-space: nowrap;justify-content: center;font-size: 20px'>Meta Cobrança<br> R${metaCob}</div>
                                 <div style='display: flex;padding: 5px;width: 350px;background-color: rgb({corPad}/0.4); border: 2px solid white; border-radius: 5px;
